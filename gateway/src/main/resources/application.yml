@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://localhost:8763/eureka/
+
+
+
+management:
+  endpoint.gateway.enabled: true
+  endpoints.web.exposure.include: gateway
+
+spring:
+  application:
+    name: gateway-service
+  main:
+    web-application-type: reactive
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      routes:
+        - id: user
+          uri: lb://USER-SERVICE
+#          uri: http://localhost:8081/
+          predicates:
+            - Path=/user-service/api/**
+          filters:
+            - AuthFilter
+        - id: device
+          uri: lb://DEVICE-SERVICE
+          predicates:
+            - Path=/device-service/api/**
+          filters:
+            - AuthFilter
+        - id: auth
+          uri: lb://AUTH-SERVICE
+          # uri: http://localhost:8090/
+          predicates:
+            - Path=/auths/api/**
